@@ -9,6 +9,7 @@ import (
 type Member struct {
 	ID                  string       `json:"id" gorm:"primary_key"`
 	Name                string       `json:"name"`
+	Email               string       `json:"email"`
 	MembershipsEntities []Membership `json:"memberships" gorm:"foreignkey:MemberEntityID"`
 }
 

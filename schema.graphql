@@ -1,0 +1,62 @@
+scalar Time
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Member {
+  id: ID!
+  name: String!
+
+  memberships: [Membership!]!
+}
+
+type Membership {
+  id: ID!
+  # id of related entity (eg. workspace, team, project etc.)
+  entityID: ID!
+  # type of related entity (eg. "Workspace", "Team", "Project" etc.)
+  # optional, serves also for filtering purposes
+  entity: String
+  # custom role for given membership (eg. admin, guest, developer etc.)
+  # optional, serves also for filtering purposes
+  # this value can be any given string
+  role: String
+
+  member: Member!
+}
+
+type Query {
+  member(id: ID!): Member
+  members(q: String): [Member!]!
+  membership(id: ID!): Membership
+  memberships(
+    memberID: ID
+    entityID: String
+    entity: String
+    role: String
+  ): [Membership!]!
+}
+
+input MembershipInvitationInput {
+  email: String!
+  entityID: String!
+  entity: String
+  role: String
+}
+
+input MembershipInput {
+  memberID: ID!
+  entityID: String!
+  entity: String
+  role: String
+}
+
+type Mutation {
+  inviteMember(input: MembershipInvitationInput): Membership!
+  # create membership for specific member
+  createMembership(input: MembershipInput!): Membership!
+  # delete membership with given ID
+  deleteMembership(id: ID!): Membership!
+}

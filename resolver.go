@@ -88,6 +88,18 @@ func (r *queryResolver) Memberships(ctx context.Context, memberID *string, entit
 	memberships = []Membership{}
 	query := r.DB.Query()
 
+	if memberID != nil {
+		query = query.Where("member_entity_id = ?", *memberID)
+	}
+	if entity != nil {
+		query = query.Where("entity = ?", *entity)
+	}
+	if entityID != nil {
+		query = query.Where("entity_id = ?", *entityID)
+	}
+	if role != nil {
+		query = query.Where("role = ?", *role)
+	}
 	// if q != nil {
 	// 	query = query.Where("name LIKE ?", "%"+*q+"%")
 	// }

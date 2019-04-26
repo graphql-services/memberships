@@ -35,8 +35,10 @@ services:
       - 8000:80
     links:
       - mysql
+      - oauth
     environment:
       - DATABASE_URL=mysql://root:root@mysql:3306/test?parseTime=true
+      - MEMBER_PROVIDER_URL=http://oauth/graphql
   test:
     image: jakubknejzlik/godog-graphql
     links:

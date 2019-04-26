@@ -20,4 +20,4 @@ COPY --from=builder /go/src/github.com/graphql-services/memberships/schema.graph
 RUN chmod +x /usr/local/bin/app
 
 ENTRYPOINT []
-CMD [ "/bin/sh", "-c", "wait-for ${DATABASE_URL} && app server" ]
+CMD [ "/bin/sh", "-c", "wait-for ${DATABASE_URL} ${MEMBER_PROVIDER_URL} && app server" ]

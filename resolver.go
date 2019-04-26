@@ -2,6 +2,7 @@ package memberships
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/graphql-services/memberships/database"
 	uuid "github.com/satori/go.uuid"
@@ -29,10 +30,16 @@ func (r *mutationResolver) getOrCreateMember(ctx context.Context, id string) (me
 	}
 
 	if res.RecordNotFound() {
-		member, err = getMember(id)
+		m, fetchErr := fetchMember(ctx, id)
+		err = fetchErr
 		if err != nil {
 			return
 		}
+		if m == nil {
+			err = fmt.Errorf("Member with id '%s' not found", id)
+			return
+		}
+		member = *m
 		err = r.DB.Query().Save(member).Error
 	}
 
@@ -40,11 +47,40 @@ func (r *mutationResolver) getOrCreateMember(ctx context.Context, id string) (me
 }
 
 func (r *mutationResolver) InviteMember(ctx context.Context, input *MembershipInvitationInput) (membership *Membership, err error) {
-	panic("not implemented")
+	var member Member
+	res := r.DB.Query().First(&member, "email = ?", input.Email)
+	err = res.Error
+
+	if err != nil && !res.RecordNotFound() {
+		return
+	}
+
+	if res.RecordNotFound() {
+		member, err = inviteMember(ctx, input.Email)
+		if err != nil {
+			return
+		}
+		err = r.DB.Query().Save(member).Error
+		if err != nil {
+			return
+		}
+	}
+
+	membership, err = r.CreateMembership(ctx, MembershipInput{
+		MemberID: member.ID,
+		Entity:   input.Entity,
+		EntityID: input.EntityID,
+		Role:     input.Role,
+	})
+
+	return
 }
 
 func (r *mutationResolver) CreateMembership(ctx context.Context, input MembershipInput) (membership *Membership, err error) {
 	member, err := r.getOrCreateMember(ctx, input.MemberID)
+	if err != nil {
+		return
+	}
 
 	membership = &Membership{
 		ID:           uuid.Must(uuid.NewV4()).String(),

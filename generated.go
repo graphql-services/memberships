@@ -42,13 +42,15 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Member struct {
+		Email       func(childComplexity int) int
+		FamilyName  func(childComplexity int) int
+		GivenName   func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Memberships func(childComplexity int) int
-		Name        func(childComplexity int) int
+		MiddleName  func(childComplexity int) int
 	}
 
 	Membership struct {
-		Accepted func(childComplexity int) int
 		Entity   func(childComplexity int) int
 		EntityID func(childComplexity int) int
 		ID       func(childComplexity int) int
@@ -97,6 +99,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
+	case "Member.Email":
+		if e.complexity.Member.Email == nil {
+			break
+		}
+
+		return e.complexity.Member.Email(childComplexity), true
+
+	case "Member.FamilyName":
+		if e.complexity.Member.FamilyName == nil {
+			break
+		}
+
+		return e.complexity.Member.FamilyName(childComplexity), true
+
+	case "Member.GivenName":
+		if e.complexity.Member.GivenName == nil {
+			break
+		}
+
+		return e.complexity.Member.GivenName(childComplexity), true
+
 	case "Member.ID":
 		if e.complexity.Member.ID == nil {
 			break
@@ -111,19 +134,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Member.Memberships(childComplexity), true
 
-	case "Member.Name":
-		if e.complexity.Member.Name == nil {
+	case "Member.MiddleName":
+		if e.complexity.Member.MiddleName == nil {
 			break
 		}
 
-		return e.complexity.Member.Name(childComplexity), true
-
-	case "Membership.Accepted":
-		if e.complexity.Membership.Accepted == nil {
-			break
-		}
-
-		return e.complexity.Membership.Accepted(childComplexity), true
+		return e.complexity.Member.MiddleName(childComplexity), true
 
 	case "Membership.Entity":
 		if e.complexity.Membership.Entity == nil {
@@ -330,7 +346,12 @@ schema {
 
 type Member {
   id: ID!
-  name: String!
+  email: String!
+
+  # optional information fetched from member provider
+  given_name: String
+  family_name: String
+  middle_name: String
 
   memberships: [Membership!]!
 }
@@ -346,8 +367,6 @@ type Membership {
   # optional, serves also for filtering purposes
   # this value can be any given string
   role: String
-  # whether user accepted invitation or not
-  accepted: Boolean!
 
   member: Member!
 }
@@ -587,7 +606,7 @@ func (ec *executionContext) _Member_id(ctx context.Context, field graphql.Collec
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Member_name(ctx context.Context, field graphql.CollectedField, obj *Member) graphql.Marshaler {
+func (ec *executionContext) _Member_email(ctx context.Context, field graphql.CollectedField, obj *Member) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
 	rctx := &graphql.ResolverContext{
@@ -600,7 +619,7 @@ func (ec *executionContext) _Member_name(ctx context.Context, field graphql.Coll
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return obj.Email, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -612,6 +631,78 @@ func (ec *executionContext) _Member_name(ctx context.Context, field graphql.Coll
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_given_name(ctx context.Context, field graphql.CollectedField, obj *Member) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Member",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GivenName, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_family_name(ctx context.Context, field graphql.CollectedField, obj *Member) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Member",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FamilyName, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Member_middle_name(ctx context.Context, field graphql.CollectedField, obj *Member) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Member",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MiddleName, nil
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Member_memberships(ctx context.Context, field graphql.CollectedField, obj *Member) graphql.Marshaler {
@@ -741,33 +832,6 @@ func (ec *executionContext) _Membership_role(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Membership_accepted(ctx context.Context, field graphql.CollectedField, obj *Membership) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object:   "Membership",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Accepted, nil
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Membership_member(ctx context.Context, field graphql.CollectedField, obj *Membership) graphql.Marshaler {
@@ -2011,11 +2075,17 @@ func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, o
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
-		case "name":
-			out.Values[i] = ec._Member_name(ctx, field, obj)
+		case "email":
+			out.Values[i] = ec._Member_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalid = true
 			}
+		case "given_name":
+			out.Values[i] = ec._Member_given_name(ctx, field, obj)
+		case "family_name":
+			out.Values[i] = ec._Member_family_name(ctx, field, obj)
+		case "middle_name":
+			out.Values[i] = ec._Member_middle_name(ctx, field, obj)
 		case "memberships":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -2066,11 +2136,6 @@ func (ec *executionContext) _Membership(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._Membership_entity(ctx, field, obj)
 		case "role":
 			out.Values[i] = ec._Membership_role(ctx, field, obj)
-		case "accepted":
-			out.Values[i] = ec._Membership_accepted(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
 		case "member":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

@@ -41,7 +41,7 @@ deploy-local:
 
 run:
 	# DATABASE_URL="mysql://root:root@tcp(localhost:3306)/test?parseTime=true" PORT=8080 go run server/server.go
-	DATABASE_URL=sqlite3://test.db PORT=8080 go run server/server.go
+	DATABASE_URL=sqlite3://test.db MEMBER_PROVIDER_URL=http://localhost:8002/graphql PORT=8080 go run server/server.go
 
 test:
 	docker-compose up --build --exit-code-from test test

@@ -14,6 +14,20 @@ services:
   #     - 8080:80
   #   environment:
   #     - PMA_HOST=mysql:3306
+  jwks-provider:
+    image: graphql/jwks-provider
+    environment:
+      - PORT=80
+  oauth:
+    image: graphql/oauth
+    links:
+      - mysql
+      - jwks-provider
+    ports:
+      - 8002:80
+    environment:
+      - DATABASE_URL=mysql://root:root@mysql:3306/test?parseTime=true
+      - JWKS_PROVIDER_URL=http://jwks-provider/private/jwks.json
   app:
     build: .
     restart: always

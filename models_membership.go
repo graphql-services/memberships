@@ -8,12 +8,11 @@ import (
 
 type Membership struct {
 	ID             string  `json:"id" gorm:"primary_key"`
-	EntityID       string  `json:"entityID"`
+	EntityID       string  `json:"entityID" gorm:"unique_index:memberentity"`
 	Entity         *string `json:"entity"`
 	Role           *string `json:"role"`
-	Accepted       bool    `json:"accepted"`
 	MemberEntity   Member  `json:"member"`
-	MemberEntityID string
+	MemberEntityID string  `gorm:"unique_index:memberentity"`
 }
 
 func (m *Membership) Member(ctx context.Context) (member Member) {

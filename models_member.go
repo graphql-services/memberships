@@ -10,6 +10,9 @@ type Member struct {
 	ID                  string       `json:"id" gorm:"primary_key"`
 	Name                string       `json:"name"`
 	Email               string       `json:"email"`
+	GivenName           string       `json:"given_name"`
+	FamilyName          string       `json:"family_name"`
+	MiddleName          string       `json:"middle_name"`
 	MembershipsEntities []Membership `json:"memberships" gorm:"foreignkey:MemberEntityID"`
 }
 

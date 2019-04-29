@@ -377,7 +377,7 @@ type Query {
   membership(id: ID!): Membership
   memberships(
     memberID: ID
-    entityID: String
+    entityID: ID
     entity: String
     role: String
   ): [Membership!]!
@@ -385,14 +385,14 @@ type Query {
 
 input MembershipInvitationInput {
   email: String!
-  entityID: String!
+  entityID: ID!
   entity: String
   role: String
 }
 
 input MembershipInput {
   memberID: ID!
-  entityID: String!
+  entityID: ID!
   entity: String
   role: String
 }
@@ -522,7 +522,7 @@ func (ec *executionContext) field_Query_memberships_args(ctx context.Context, ra
 	args["memberID"] = arg0
 	var arg1 *string
 	if tmp, ok := rawArgs["entityID"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1993,7 +1993,7 @@ func (ec *executionContext) unmarshalInputMembershipInput(ctx context.Context, v
 			}
 		case "entityID":
 			var err error
-			it.EntityID, err = ec.unmarshalNString2string(ctx, v)
+			it.EntityID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -2029,7 +2029,7 @@ func (ec *executionContext) unmarshalInputMembershipInvitationInput(ctx context.
 			}
 		case "entityID":
 			var err error
-			it.EntityID, err = ec.unmarshalNString2string(ctx, v)
+			it.EntityID, err = ec.unmarshalNID2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

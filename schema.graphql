@@ -38,7 +38,7 @@ type Query {
   membership(id: ID!): Membership
   memberships(
     memberID: ID
-    entityID: String
+    entityID: ID
     entity: String
     role: String
   ): [Membership!]!
@@ -46,14 +46,14 @@ type Query {
 
 input MembershipInvitationInput {
   email: String!
-  entityID: String!
+  entityID: ID!
   entity: String
   role: String
 }
 
 input MembershipInput {
   memberID: ID!
-  entityID: String!
+  entityID: ID!
   entity: String
   role: String
 }

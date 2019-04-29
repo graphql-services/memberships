@@ -122,7 +122,8 @@ func (r *queryResolver) Members(ctx context.Context, q *string) (members []Membe
 	return
 }
 func (r *queryResolver) Membership(ctx context.Context, id string) (membership *Membership, err error) {
-	err = r.DB.Query().Model(&Membership{}).First(membership, "id = ?", id).Error
+	membership = &Membership{}
+	err = r.DB.Query().First(membership, "id = ?", id).Error
 	return
 }
 func (r *queryResolver) Memberships(ctx context.Context, memberID *string, entityID *string, entity *string, role *string) (memberships []Membership, err error) {

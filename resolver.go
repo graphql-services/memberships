@@ -95,6 +95,11 @@ func (r *mutationResolver) CreateMembership(ctx context.Context, input Membershi
 	return
 }
 func (r *mutationResolver) DeleteMembership(ctx context.Context, id string) (membership *Membership, err error) {
+	membership, err = r.Query().Membership(ctx, id)
+	if err != nil {
+		return
+	}
+
 	err = r.DB.Query().Delete(&Membership{ID: id}).Error
 	return
 }

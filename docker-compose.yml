@@ -18,16 +18,23 @@ services:
     image: graphql/jwks-provider
     environment:
       - PORT=80
-  oauth:
-    image: graphql/oauth
+  idp:
+    image: graphql/idp
     links:
       - mysql
-      - jwks-provider
     ports:
-      - 8002:80
+      - 8003:80
     environment:
       - DATABASE_URL=mysql://root:root@mysql:3306/test?parseTime=true
-      - JWKS_PROVIDER_URL=http://jwks-provider/private/jwks.json
+  id:
+    image: graphql/id
+    links:
+      - mysql
+    ports:
+      - 8004:80
+    environment:
+      - DATABASE_URL=mysql://root:root@mysql:3306/test?parseTime=true
+      - IDP_URL=http://idp/graphql
   app:
     build: .
     restart: always
@@ -35,10 +42,10 @@ services:
       - 8000:80
     links:
       - mysql
-      - oauth
+      - id
     environment:
       - DATABASE_URL=mysql://root:root@mysql:3306/test?parseTime=true
-      - MEMBER_PROVIDER_URL=http://oauth/graphql
+      - MEMBER_PROVIDER_URL=http://id/graphql
   test:
     image: jakubknejzlik/godog-graphql
     links:

@@ -8,7 +8,14 @@ Feature: Invitations
         Then the response should be:
             """
             {
-            "inviteMember" : {"entityID":"default","entity":"project","role":"admin", "member":{"email":"john.doe@example.com"} }
+                "inviteMember": {
+                    "entityID": "default",
+                    "entity": "project",
+                    "role": "admin",
+                    "member": {
+                        "email": "john.doe@example.com"
+                    }
+                }
             }
             """
 

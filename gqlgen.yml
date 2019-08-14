@@ -18,3 +18,5 @@ models:
     model: github.com/graphql-services/memberships.Member
   Membership:
     model: github.com/graphql-services/memberships.Membership
+  _Any:
+    model: github.com/graphql-services/memberships/scalars._Any

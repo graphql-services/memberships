@@ -21,3 +21,5 @@ func (m *Member) Memberships(ctx context.Context) (memberships []Membership) {
 	db.Query().Model(m).Association("MembershipsEntities").Find(&memberships)
 	return
 }
+
+func (m *Member) Is_Entity() {}

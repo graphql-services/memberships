@@ -15,3 +15,7 @@ type MembershipInvitationInput struct {
 	Entity   *string `json:"entity"`
 	Role     *string `json:"role"`
 }
+
+type _Service struct {
+	Sdl *string `json:"sdl"`
+}

@@ -20,3 +20,5 @@ func (m *Membership) Member(ctx context.Context) (member Member) {
 	db.Query().Model(m).Related(&member, "MemberEntity")
 	return
 }
+
+func (m *Membership) Is_Entity() {}

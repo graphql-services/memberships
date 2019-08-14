@@ -9,11 +9,6 @@ const (
 	SchemaDSL    string = `
 scalar Time
 
-schema {
-	query: Query
-	mutation: Mutation
-}
-
 type _Service {
 	sdl: String
 }

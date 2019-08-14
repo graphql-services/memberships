@@ -9,10 +9,6 @@ const (
 	SchemaDSL    string = `
 scalar Time
 
-type _Service {
-	sdl: String
-}
-
 type Member {
 	id: ID!
 	email: String!
@@ -40,7 +36,7 @@ type Membership {
 	member: Member!
 }
 
-type Query {
+extend type Query {
 	member(id: ID!): Member
 	members(q: String): [Member!]!
 	membership(id: ID!): Membership

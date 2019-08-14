@@ -5,5 +5,70 @@ package memberships
 type key int
 
 const (
-	DBContextKey key = iota
+	DBContextKey key    = iota
+	SchemaDSL    string = `
+scalar Time
+
+type Member {
+	id: ID!
+	email: String!
+
+	# optional information fetched from member provider
+	given_name: String
+	family_name: String
+	middle_name: String
+
+	memberships: [Membership!]!
+}
+
+type Membership {
+	id: ID!
+	# id of related entity (eg. workspace, team, project etc.)
+	entityID: ID!
+	# type of related entity (eg. "Workspace", "Team", "Project" etc.)
+	# optional, serves also for filtering purposes
+	entity: String
+	# custom role for given membership (eg. admin, guest, developer etc.)
+	# optional, serves also for filtering purposes
+	# this value can be any given string
+	role: String
+
+	member: Member!
+}
+
+extend type Query {
+	member(id: ID!): Member
+	members(q: String): [Member!]!
+	membership(id: ID!): Membership
+	memberships(
+	memberID: ID
+	entityID: ID
+	entity: String
+	role: String
+	): [Membership!]!
+	_service: _Service!
+}
+
+input MembershipInvitationInput {
+	email: String!
+	entityID: ID!
+	entity: String
+	role: String
+}
+
+input MembershipInput {
+	memberID: ID!
+	entityID: ID!
+	entity: String
+	role: String
+}
+
+type Mutation {
+	inviteMember(input: MembershipInvitationInput): Membership!
+	# create membership for specific member
+	createMembership(input: MembershipInput!): Membership!
+	# delete membership with given ID
+	deleteMembership(id: ID!): Membership!
+}
+`
 )

@@ -46,7 +46,6 @@ extend type Query {
 	entity: String
 	role: String
 	): [Membership!]!
-	_service: _Service!
 }
 
 input MembershipInvitationInput {

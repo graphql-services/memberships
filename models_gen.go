@@ -2,6 +2,10 @@
 
 package memberships
 
+type _Entity interface {
+	Is_Entity()
+}
+
 type MembershipInput struct {
 	MemberID string  `json:"memberID"`
 	EntityID string  `json:"entityID"`

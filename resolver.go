@@ -26,6 +26,37 @@ func (r *queryResolver) _service(ctx context.Context) (*_Service, error) {
 	}, nil
 }
 
+func (r *queryResolver) _entities(ctx context.Context, representations []interface{}) (res []_Entity, err error) {
+	res = []_Entity{}
+
+	for _, repr := range representations {
+		values, ok := repr.(map[string]interface{})
+		if !ok {
+			err = fmt.Errorf("The _entities resolver received invalid representation type")
+			break
+		}
+
+		typename, ok := values["__typename"].(string)
+		if !ok || typename != "Member" {
+			continue
+		}
+
+		identifier, ok := values["id"].(string)
+		if !ok {
+			continue
+		}
+
+		member, _err := r.Query().Member(ctx, identifier)
+		err = _err
+		if err != nil {
+			break
+		}
+		res = append(res, member)
+	}
+
+	return res, nil
+}
+
 type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) getOrCreateMember(ctx context.Context, id string) (member Member, err error) {

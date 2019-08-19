@@ -16,7 +16,9 @@ type _Service {
   sdl: String
 }
 
-type Member {
+union _Entity = Member
+
+type Member @key(fields: "id") {
   id: ID!
   email: String!
 
@@ -53,7 +55,10 @@ type Query {
     entity: String
     role: String
   ): [Membership!]!
+
+  # federation
   _service: _Service!
+  _entities(representations: [_Any!]!): [_Entity]!
 }
 
 input MembershipInvitationInput {

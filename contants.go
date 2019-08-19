@@ -9,7 +9,7 @@ const (
 	SchemaDSL    string = `
 scalar Time
 
-type Member {
+type Member @key(fields:"id") {
 	id: ID!
 	email: String!
 

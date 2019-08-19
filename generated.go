@@ -6,12 +6,14 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/graphql-services/memberships/scalars"
 	"github.com/vektah/gqlparser"
 	"github.com/vektah/gqlparser/ast"
 )
@@ -79,6 +81,7 @@ type ComplexityRoot struct {
 		Members     func(childComplexity int, q *string) int
 		Membership  func(childComplexity int, id string) int
 		Memberships func(childComplexity int, memberID *string, entityID *string, entity *string, role *string) int
+		_entities   func(childComplexity int, representations []interface{}) int
 		_service    func(childComplexity int) int
 	}
 
@@ -98,6 +101,7 @@ type QueryResolver interface {
 	Membership(ctx context.Context, id string) (*Membership, error)
 	Memberships(ctx context.Context, memberID *string, entityID *string, entity *string, role *string) ([]*Membership, error)
 	_service(ctx context.Context) (*_Service, error)
+	_entities(ctx context.Context, representations []interface{}) ([]_Entity, error)
 }
 
 type executableSchema struct {
@@ -276,6 +280,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Memberships(childComplexity, args["memberID"].(*string), args["entityID"].(*string), args["entity"].(*string), args["role"].(*string)), true
 
+	case "Query._entities":
+		if e.complexity.Query._entities == nil {
+			break
+		}
+
+		args, err := ec.field_Query__entities_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query._entities(childComplexity, args["representations"].([]interface{})), true
+
 	case "Query._service":
 		if e.complexity.Query._service == nil {
 			break
@@ -370,7 +386,9 @@ type _Service {
   sdl: String
 }
 
-type Member {
+union _Entity = Member
+
+type Member @key(fields: "id") {
   id: ID!
   email: String!
 
@@ -407,7 +425,10 @@ type Query {
     entity: String
     role: String
   ): [Membership!]!
+
+  # federation
   _service: _Service!
+  _entities(representations: [_Any!]!): [_Entity]!
 }
 
 input MembershipInvitationInput {
@@ -533,6 +554,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query__entities_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []interface{}
+	if tmp, ok := rawArgs["representations"]; ok {
+		arg0, err = ec.unmarshalN_Any2ᚕinterface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["representations"] = arg0
 	return args, nil
 }
 
@@ -1381,6 +1416,50 @@ func (ec *executionContext) _Query__service(ctx context.Context, field graphql.C
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalN_Service2ᚖgithubᚗcomᚋgraphqlᚑservicesᚋmembershipsᚐ_Service(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query__entities(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query__entities_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query()._entities(rctx, args["representations"].([]interface{}))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]_Entity)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalN_Entity2ᚕgithubᚗcomᚋgraphqlᚑservicesᚋmembershipsᚐ_Entity(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2719,11 +2798,22 @@ func (ec *executionContext) unmarshalInputMembershipInvitationInput(ctx context.
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) __Entity(ctx context.Context, sel ast.SelectionSet, obj *_Entity) graphql.Marshaler {
+	switch obj := (*obj).(type) {
+	case nil:
+		return graphql.Null
+	case *Member:
+		return ec._Member(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
 
-var memberImplementors = []string{"Member"}
+var memberImplementors = []string{"Member", "_Entity"}
 
 func (ec *executionContext) _Member(ctx context.Context, sel ast.SelectionSet, obj *Member) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, memberImplementors)
@@ -2940,6 +3030,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query__service(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "_entities":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query__entities(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -3414,6 +3518,95 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) unmarshalN_Any2interface(ctx context.Context, v interface{}) (interface{}, error) {
+	if v == nil {
+		return nil, nil
+	}
+	return scalars.Unmarshal_Any(v)
+}
+
+func (ec *executionContext) marshalN_Any2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := scalars.Marshal_Any(v)
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalN_Any2ᚕinterface(ctx context.Context, v interface{}) ([]interface{}, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]interface{}, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalN_Any2interface(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalN_Any2ᚕinterface(ctx context.Context, sel ast.SelectionSet, v []interface{}) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalN_Any2interface(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalN_Entity2ᚕgithubᚗcomᚋgraphqlᚑservicesᚋmembershipsᚐ_Entity(ctx context.Context, sel ast.SelectionSet, v []_Entity) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalO_Entity2githubᚗcomᚋgraphqlᚑservicesᚋmembershipsᚐ_Entity(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalN_Service2githubᚗcomᚋgraphqlᚑservicesᚋmembershipsᚐ_Service(ctx context.Context, sel ast.SelectionSet, v _Service) graphql.Marshaler {
 	return ec.__Service(ctx, sel, &v)
 }
@@ -3755,6 +3948,10 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalO_Entity2githubᚗcomᚋgraphqlᚑservicesᚋmembershipsᚐ_Entity(ctx context.Context, sel ast.SelectionSet, v _Entity) graphql.Marshaler {
+	return ec.__Entity(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValue(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

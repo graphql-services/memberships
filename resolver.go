@@ -38,19 +38,18 @@ func (r *queryResolver) _entities(ctx context.Context, representations []interfa
 
 		typename, ok := values["__typename"].(string)
 		if !ok || typename != "Member" {
+			err = fmt.Errorf("Unexpected typename '%s'", typename)
 			continue
 		}
 
 		identifier, ok := values["id"].(string)
 		if !ok {
+			res = append(res, &Member{})
 			continue
 		}
 
 		member, _err := r.Query().Member(ctx, identifier)
 		err = _err
-		if err != nil {
-			break
-		}
 		res = append(res, member)
 	}
 

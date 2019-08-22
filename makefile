@@ -27,13 +27,13 @@ push: login
 	docker push $(TAG)
 
 generate:
-	go run github.com/99designs/gqlgen
-	go generate ./...
+	GO111MODULE=on go run github.com/99designs/gqlgen
+	GO111MODULE=on go generate ./...
 
 build-local:
 	# go get ./...
 	# go build -o $(IMAGE_NAME) ./server/server.go
-	go build -o $(IMAGE_NAME) ./server/server.go
+	GO111MODULE=on go build -o $(IMAGE_NAME) ./server/server.go
 
 deploy-local:
 	make build-local
@@ -41,7 +41,7 @@ deploy-local:
 
 run:
 	# DATABASE_URL="mysql://root:root@tcp(localhost:3306)/test?parseTime=true" PORT=8080 go run server/server.go
-	DATABASE_URL=sqlite3://test.db MEMBER_PROVIDER_URL=http://localhost:8002/graphql PORT=8080 go run server/server.go
+	GO111MODULE=on DATABASE_URL=sqlite3://test.db MEMBER_PROVIDER_URL=http://localhost:8002/graphql PORT=8080 go run server/server.go
 
 test:
 	docker-compose up --build --exit-code-from test test

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	uuid "github.com/gofrs/uuid"
 	"github.com/graphql-services/memberships/database"
-	uuid "github.com/satori/go.uuid"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct {

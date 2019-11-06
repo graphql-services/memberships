@@ -57,3 +57,8 @@ func (db *DB) AutoMigrate(values ...interface{}) {
 func (db *DB) Close() error {
 	return db.db.Close()
 }
+
+// Ping ...
+func (db *DB) Ping() error {
+	return db.db.DB().Ping()
+}

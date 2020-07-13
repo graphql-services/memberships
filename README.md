@@ -1,2 +1,3 @@
 # memberships
-Membership service for managing crown access with GraphQL API
+
+Membership service for managing role access with GraphQL API
